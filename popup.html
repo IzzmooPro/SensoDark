@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app">
+
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">SensoDark</div>
+          <div class="brand-tagline">Akıllı karanlık görünüm</div>
+        </div>
+      </div>
+      <span class="version">v1.4.7</span>
+    </header>
+
+    <div class="card main-toggle hero-card">
+      <label class="toggle-row">
+        <div class="hero-copy">
+          <div class="status-pill"><span class="status-dot" id="statusDot"></span><span id="statusText">Açık</span></div>
+          <span class="toggle-label hero-title">Dark Mode</span>
+          <span class="helper-text">Tüm uyumlu sayfalarda etkinleştir</span>
+        </div>
+        <div class="toggle">
+          <input type="checkbox" id="globalToggle" aria-label="Dark Mode">
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </div>
+      </label>
+    </div>
+
+    <div class="card site-toggle">
+      <label class="toggle-row">
+        <div class="row-leading">
+          <div class="row-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
+          </div>
+          <div class="site-info">
+            <span class="toggle-label">Bu site için aktif</span>
+            <span class="hostname" id="currentHost"></span>
+            <span class="scanner-state" id="scannerState">Kontrol ediliyor…</span>
+          </div>
+        </div>
+        <div class="toggle">
+          <input type="checkbox" id="siteToggle" aria-label="Bu site için Dark Mode">
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </div>
+      </label>
+    </div>
+
+    <div class="card automation-card">
+      <div class="section-heading">
+        <div>
+          <div class="mode-header">Otomasyon</div>
+          <div class="section-subtitle">Ne zaman devreye gireceğini seç</div>
+        </div>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      </div>
+      <div class="auto-buttons">
+        <button type="button" class="auto-btn active" id="autoManual" data-auto="manual">Manuel</button>
+        <button type="button" class="auto-btn" id="autoSystem" data-auto="system">Sistem</button>
+        <button type="button" class="auto-btn" id="autoTime" data-auto="time">Zaman</button>
+      </div>
+      <div class="time-inputs" id="timeInputs" style="display:none">
+        <div class="time-row">
+          <label>Başlangıç</label>
+          <input type="time" id="timeStart" value="20:00">
+        </div>
+        <div class="time-row">
+          <label>Bitiş</label>
+          <input type="time" id="timeEnd" value="07:00">
+        </div>
+      </div>
+      <div class="auto-desc"><span class="mini-dot"></span><span id="autoDesc">Kendin aç/kapa</span></div>
+    </div>
+
+    <div class="card disabled-sites">
+      <button type="button" class="expand-btn" id="expandBtn">
+        <span class="expand-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5l14 14M19 5L5 19"/></svg>
+          Devre Dışı Siteler
+        </span>
+        <div class="expand-right">
+          <span class="count" id="siteCount">0</span>
+          <span class="arrow" id="expandArrow">&#9656;</span>
+        </div>
+      </button>
+      <ul class="site-list" id="siteList"></ul>
+    </div>
+
+    <div class="shortcuts-hint">
+      <div><kbd>Alt Shift D</kbd><span>Genel</span></div>
+      <span class="shortcut-divider"></span>
+      <div><kbd>Alt Shift A</kbd><span>Bu site</span></div>
+    </div>
+
+    <footer>
+      <button type="button" class="reset-btn" id="resetBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+        Sıfırla
+      </button>
+    </footer>
+
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

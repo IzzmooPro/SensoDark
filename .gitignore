@@ -1,0 +1,10 @@
+# Build artifacts
+dist/*.zip
+
+# Local tooling / editor state
+.claude/settings.local.json
+
+# OS noise
+Thumbs.db
+Desktop.ini
+.DS_Store
