@@ -1,0 +1,68 @@
+{
+  "appName": { "message": "SensoDark" },
+  "appDesc": { "message": "Güvenli, hafif ve şeffaf dark mode uzantısı. Minimal izin, maksimum gizlilik." },
+  "cmdToggleDark": { "message": "Dark Mode aç/kapa" },
+  "cmdToggleSite": { "message": "Bu site için aç/kapa" },
+
+  "tagline": { "message": "Akıllı karanlık görünüm" },
+  "statusOn": { "message": "Açık" },
+  "statusOff": { "message": "Kapalı" },
+  "heroTitle": { "message": "Dark Mode" },
+  "heroHelper": { "message": "Tüm uyumlu sayfalarda etkinleştir" },
+
+  "intensityHeader": { "message": "Koyuluk" },
+  "intensitySubtitle": { "message": "Sayfaların ne kadar koyulaşacağı" },
+  "intensitySoft": { "message": "Yumuşak" },
+  "intensityMedium": { "message": "Normal" },
+  "intensityDeep": { "message": "Koyu" },
+
+  "siteActive": { "message": "Bu site için aktif" },
+  "reDetect": { "message": "Yeniden algıla" },
+  "markDark": { "message": "Zaten koyu" },
+  "unmarkDark": { "message": "Koyu işaretini kaldır" },
+
+  "autoHeader": { "message": "Otomasyon" },
+  "autoSubtitle": { "message": "Ne zaman devreye gireceğini seç" },
+  "autoManual": { "message": "Manuel" },
+  "autoSystem": { "message": "Sistem" },
+  "autoTime": { "message": "Zaman" },
+  "autoDescManual": { "message": "Kendin aç/kapa" },
+  "autoDescSystem": { "message": "Windows temasını takip et" },
+  "autoDescTime": { "message": "Belirlenen saatlerde otomatik" },
+  "timeStartLabel": { "message": "Başlangıç" },
+  "timeEndLabel": { "message": "Bitiş" },
+
+  "disabledSitesLabel": { "message": "Devre Dışı Siteler" },
+  "shortcutGlobal": { "message": "Genel" },
+  "shortcutSite": { "message": "Bu site" },
+  "reset": { "message": "Sıfırla" },
+  "openSettings": { "message": "Ayarlar" },
+
+  "scannerChecking": { "message": "Kontrol ediliyor…" },
+  "scannerUnavailable": { "message": "Bu sayfada kullanılamaz" },
+  "scannerKnownDark": { "message": "Bilinen koyu site · atlandı" },
+  "scannerUserDark": { "message": "Koyu işaretli · atlandı" },
+  "scannerDetectedDark": { "message": "Koyu tema algılandı · atlandı" },
+  "scannerActive": {
+    "message": "Scanner aktif · $count$ öğe",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "scannerNoStyle": { "message": "Stil uygulanmadı" },
+  "scannerNoAccess": { "message": "Sayfaya erişilemiyor" },
+
+  "optionsTitle": { "message": "SensoDark Ayarları" },
+  "optionsSubtitle": { "message": "Yedekleme ve gelişmiş seçenekler" },
+  "backupHeader": { "message": "Ayarları Yedekle" },
+  "backupDesc": { "message": "Tüm ayarlarını ve site listelerini bir dosyaya aktar ya da geri yükle." },
+  "exportBtn": { "message": "Dışa Aktar" },
+  "importBtn": { "message": "İçe Aktar" },
+  "importSuccess": { "message": "Ayarlar içe aktarıldı." },
+  "importError": { "message": "Dosya okunamadı ya da geçersiz." },
+  "exportSuccess": { "message": "Ayarlar dışa aktarıldı." },
+  "userDarkHeader": { "message": "Koyu Olarak İşaretlenen Siteler" },
+  "userDarkDesc": { "message": "Bu sitelerde tarayıcı çalışmaz; siteyi olduğu gibi bırakır." },
+  "disabledHeader": { "message": "Devre Dışı Siteler" },
+  "disabledDesc": { "message": "Bu sitelerde dark mode tamamen kapalıdır." },
+  "emptyList": { "message": "Liste boş." },
+  "removeBtn": { "message": "Kaldır" }
+}

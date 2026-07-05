@@ -1,18 +1,24 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  applyI18n();
+
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   let hostname = "";
   try {
     hostname = new URL(tab.url).hostname;
   } catch (_) {}
 
-  const { settings } = await chrome.storage.local.get("settings");
-  const s = settings || {
+  const DEFAULTS = {
     enabled: true,
     automation: "manual",
     timeStart: "20:00",
     timeEnd: "07:00",
+    intensity: "medium",
     disabledSites: [],
+    userDarkSites: [],
   };
+
+  const { settings } = await chrome.storage.sync.get("settings");
+  const s = { ...DEFAULTS, ...(settings || {}) };
 
   const $ = (id) => document.getElementById(id);
 
@@ -24,6 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const siteList = $("siteList");
   const siteCount = $("siteCount");
   const resetBtn = $("resetBtn");
+  const settingsBtn = $("settingsBtn");
   const autoManual = $("autoManual");
   const autoSystem = $("autoSystem");
   const autoTime = $("autoTime");
@@ -33,12 +40,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   const timeEnd = $("timeEnd");
   const statusText = $("statusText");
   const scannerState = $("scannerState");
+  const intButtons = [$("intSoft"), $("intMedium"), $("intDeep")];
+  const reDetectBtn = $("reDetectBtn");
+  const markDarkBtn = $("markDarkBtn");
+  const markDarkLabel = $("markDarkLabel");
 
-  const AUTO_DESCS = {
-    manual: "Kendin aç/kapa",
-    system: "Windows temasını takip et",
-    time: "Belirlenen saatlerde otomatik"
+  const AUTO_DESC_KEYS = {
+    manual: "autoDescManual",
+    system: "autoDescSystem",
+    time: "autoDescTime",
   };
+
+  let localSettings = JSON.parse(JSON.stringify(s));
+  let saving = false;
 
   // Initialize UI
   globalToggle.checked = s.enabled;
@@ -47,32 +61,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   timeStart.value = s.timeStart || "20:00";
   timeEnd.value = s.timeEnd || "07:00";
   setActiveAuto(s.automation || "manual");
+  setActiveIntensity(s.intensity || "medium");
+  setMarkDarkState(s.userDarkSites.includes(hostname));
   renderSiteList(s.disabledSites);
   setControlsState(s.enabled);
   updateScannerState();
 
-  let localSettings = JSON.parse(JSON.stringify(s));
-  let saving = false;
-
   function save(patch) {
     Object.assign(localSettings, patch);
     saving = true;
-    chrome.storage.local.set({ settings: { ...localSettings } }, () => {
+    chrome.storage.sync.set({ settings: { ...localSettings } }, () => {
       saving = false;
     });
   }
 
-  // Keep UI in sync when settings change elsewhere (shortcut, alarm, system)
+  // Keep UI in sync when settings change elsewhere (shortcut, alarm, system, sync)
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== "local" || !changes.settings || saving) return;
+    if (area !== "sync" || !changes.settings || saving) return;
     const next = changes.settings.newValue;
     if (!next) return;
-    localSettings = JSON.parse(JSON.stringify(next));
+    localSettings = { ...DEFAULTS, ...next };
     globalToggle.checked = !!next.enabled;
     siteToggle.checked = !(next.disabledSites || []).includes(hostname);
     timeStart.value = next.timeStart || "20:00";
     timeEnd.value = next.timeEnd || "07:00";
     setActiveAuto(next.automation || "manual");
+    setActiveIntensity(next.intensity || "medium");
+    setMarkDarkState((next.userDarkSites || []).includes(hostname));
     renderSiteList(next.disabledSites || []);
     setControlsState(!!next.enabled);
   });
@@ -93,6 +108,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     save({ disabledSites: sites });
     renderSiteList(sites);
+  });
+
+  // ── Intensity ──
+
+  intButtons.forEach((btn) => {
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      const level = btn.dataset.intensity;
+      setActiveIntensity(level);
+      save({ intensity: level });
+    });
+  });
+
+  // ── Re-detect / mark dark ──
+
+  reDetectBtn.addEventListener("click", async () => {
+    if (!tab || !tab.id) return;
+    try {
+      await chrome.tabs.sendMessage(tab.id, { type: "RE_DETECT" }, { frameId: 0 });
+    } catch (_) {}
+    setTimeout(updateScannerState, 400);
+  });
+
+  markDarkBtn.addEventListener("click", () => {
+    let list = [...(localSettings.userDarkSites || [])];
+    const has = list.includes(hostname);
+    if (has) {
+      list = list.filter((h) => h !== hostname);
+    } else if (hostname) {
+      list.push(hostname);
+    }
+    save({ userDarkSites: list });
+    setMarkDarkState(!has);
+    setTimeout(updateScannerState, 400);
   });
 
   // ── Automation ──
@@ -125,7 +174,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (localSettings.automation === "time") syncTimeAutomation();
   });
 
-  // ── Expand / Reset ──
+  // ── Expand / Reset / Settings ──
 
   expandBtn.addEventListener("click", () => {
     const open = siteList.classList.toggle("expanded");
@@ -133,22 +182,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   resetBtn.addEventListener("click", () => {
-    const def = {
-      enabled: true,
-      automation: "manual",
-      timeStart: "20:00",
-      timeEnd: "07:00",
-      disabledSites: [],
-    };
+    const def = JSON.parse(JSON.stringify(DEFAULTS));
     localSettings = { ...def };
-    chrome.storage.local.set({ settings: def });
+    chrome.storage.sync.set({ settings: def });
     globalToggle.checked = true;
     siteToggle.checked = true;
     timeStart.value = "20:00";
     timeEnd.value = "07:00";
     setActiveAuto("manual");
+    setActiveIntensity("medium");
+    setMarkDarkState(false);
     renderSiteList([]);
     setControlsState(true);
+  });
+
+  settingsBtn.addEventListener("click", () => {
+    chrome.runtime.openOptionsPage();
   });
 
   // ── Helpers ──
@@ -156,27 +205,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function updateScannerState() {
     scannerState.className = "scanner-state";
     if (!tab || !tab.id || !/^https?:/.test(tab.url || "")) {
-      scannerState.textContent = "Bu sayfada kullanılamaz";
+      scannerState.textContent = msg("scannerUnavailable");
+      scannerState.classList.add("warn");
+      return;
+    }
+    if ((localSettings || s).userDarkSites && (localSettings || s).userDarkSites.includes(hostname)) {
+      scannerState.textContent = msg("scannerUserDark");
       scannerState.classList.add("warn");
       return;
     }
     try {
       const d = await chrome.tabs.sendMessage(tab.id, { type: "GET_DIAGNOSTICS" }, { frameId: 0 });
       if (d.knownDarkSite) {
-        scannerState.textContent = "Bilinen koyu site · atlandı";
+        scannerState.textContent = msg("scannerKnownDark");
         scannerState.classList.add("warn");
       } else if (d.pageDarkDetected) {
-        scannerState.textContent = "Koyu tema algılandı · atlandı";
+        scannerState.textContent = msg("scannerDetectedDark");
         scannerState.classList.add("warn");
       } else if (d.stylePresent) {
-        scannerState.textContent = "Scanner aktif · " + d.scannedElements + " öğe";
+        scannerState.textContent = msg("scannerActive", [String(d.scannedElements)]);
         scannerState.classList.add("ok");
       } else {
-        scannerState.textContent = "Stil uygulanmadı";
+        scannerState.textContent = msg("scannerNoStyle");
         scannerState.classList.add("error");
       }
     } catch (_) {
-      scannerState.textContent = "Sayfaya erişilemiyor";
+      scannerState.textContent = msg("scannerNoAccess");
       scannerState.classList.add("error");
     }
   }
@@ -204,8 +258,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     autoManual.classList.toggle("active", auto === "manual");
     autoSystem.classList.toggle("active", auto === "system");
     autoTime.classList.toggle("active", auto === "time");
-    autoDesc.textContent = AUTO_DESCS[auto] || "";
+    autoDesc.textContent = msg(AUTO_DESC_KEYS[auto] || "autoDescManual");
     timeInputs.style.display = auto === "time" ? "flex" : "none";
+  }
+
+  function setActiveIntensity(level) {
+    intButtons.forEach((btn) => {
+      if (btn) btn.classList.toggle("active", btn.dataset.intensity === level);
+    });
+  }
+
+  function setMarkDarkState(on) {
+    markDarkBtn.classList.toggle("active", on);
+    markDarkBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    markDarkLabel.textContent = on ? msg("unmarkDark") : msg("markDark");
   }
 
   function renderSiteList(sites) {
@@ -231,9 +297,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function setControlsState(enabled) {
     document.body.classList.toggle("is-off", !enabled);
-    statusText.textContent = enabled ? "Açık" : "Kapalı";
-    document.querySelectorAll(".site-toggle, .automation-card").forEach((el) => {
+    statusText.textContent = enabled ? msg("statusOn") : msg("statusOff");
+    document.querySelectorAll(".site-toggle, .automation-card, .intensity-card").forEach((el) => {
       el.classList.toggle("disabled", !enabled);
     });
   }
 });
+
+// ── i18n ──
+
+function msg(key, subs) {
+  try {
+    const m = chrome.i18n.getMessage(key, subs);
+    if (m) return m;
+  } catch (_) {}
+  return key;
+}
+
+function applyI18n() {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    const text = msg(key);
+    if (text && text !== key) el.textContent = text;
+  });
+}

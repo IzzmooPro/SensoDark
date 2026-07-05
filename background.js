@@ -3,21 +3,31 @@ const DEFAULTS = {
   automation: "manual",
   timeStart: "20:00",
   timeEnd: "07:00",
-  disabledSites: []
+  intensity: "medium",
+  disabledSites: [],
+  userDarkSites: []
 };
 
 async function ensureInitialized() {
-  const { settings } = await chrome.storage.local.get("settings");
+  let { settings } = await chrome.storage.sync.get("settings");
+
+  // One-time migration from the pre-1.5 local store to synced storage
+  if (!settings) {
+    const local = await chrome.storage.local.get("settings");
+    if (local.settings) settings = local.settings;
+  }
+
   const merged = {
     ...DEFAULTS,
     ...(settings || {}),
-    disabledSites: Array.isArray(settings?.disabledSites) ? settings.disabledSites : []
+    disabledSites: Array.isArray(settings?.disabledSites) ? settings.disabledSites : [],
+    userDarkSites: Array.isArray(settings?.userDarkSites) ? settings.userDarkSites : []
   };
   if (merged.automation === "time") {
     merged.enabled = isInTimeRange(merged.timeStart, merged.timeEnd);
   }
   if (!settings || JSON.stringify(settings) !== JSON.stringify(merged)) {
-    await chrome.storage.local.set({ settings: merged });
+    await chrome.storage.sync.set({ settings: merged });
   }
 
   const alarm = await chrome.alarms.get("sensodark-time-check");
@@ -60,12 +70,12 @@ function updateBadge(tabId, active) {
 
 // ── Feature 5: Keyboard shortcuts ──
 chrome.commands.onCommand.addListener(async (command) => {
-  const { settings } = await chrome.storage.local.get("settings");
+  const { settings } = await chrome.storage.sync.get("settings");
   if (!settings) return;
 
   if (command === "toggle-dark") {
     settings.enabled = !settings.enabled;
-    await chrome.storage.local.set({ settings });
+    await chrome.storage.sync.set({ settings });
   }
 
   if (command === "toggle-site") {
@@ -81,17 +91,17 @@ chrome.commands.onCommand.addListener(async (command) => {
         sites.push(hostname);
       }
       settings.disabledSites = sites;
-      await chrome.storage.local.set({ settings });
+      await chrome.storage.sync.set({ settings });
     } catch (_) {}
   }
 });
 
 async function handleSystemDarkMode(isDark) {
-  const { settings } = await chrome.storage.local.get("settings");
+  const { settings } = await chrome.storage.sync.get("settings");
   if (!settings || settings.automation !== "system") return;
   if (settings.enabled !== isDark) {
     settings.enabled = isDark;
-    await chrome.storage.local.set({ settings });
+    await chrome.storage.sync.set({ settings });
   }
 }
 
@@ -99,13 +109,13 @@ async function handleSystemDarkMode(isDark) {
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name !== "sensodark-time-check") return;
 
-  const { settings } = await chrome.storage.local.get("settings");
+  const { settings } = await chrome.storage.sync.get("settings");
   if (!settings || settings.automation !== "time") return;
 
   const shouldBeEnabled = isInTimeRange(settings.timeStart, settings.timeEnd);
   if (settings.enabled !== shouldBeEnabled) {
     settings.enabled = shouldBeEnabled;
-    await chrome.storage.local.set({ settings });
+    await chrome.storage.sync.set({ settings });
   }
 });
 

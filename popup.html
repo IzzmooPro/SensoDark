@@ -17,24 +17,39 @@
         </div>
         <div>
           <div class="brand-name">SensoDark</div>
-          <div class="brand-tagline">Akıllı karanlık görünüm</div>
+          <div class="brand-tagline" data-i18n="tagline">Akıllı karanlık görünüm</div>
         </div>
       </div>
-      <span class="version">v1.4.7</span>
+      <span class="version">v1.5.0</span>
     </header>
 
     <div class="card main-toggle hero-card">
       <label class="toggle-row">
         <div class="hero-copy">
-          <div class="status-pill"><span class="status-dot" id="statusDot"></span><span id="statusText">Açık</span></div>
-          <span class="toggle-label hero-title">Dark Mode</span>
-          <span class="helper-text">Tüm uyumlu sayfalarda etkinleştir</span>
+          <div class="status-pill"><span class="status-dot" id="statusDot"></span><span id="statusText" data-i18n="statusOn">Açık</span></div>
+          <span class="toggle-label hero-title" data-i18n="heroTitle">Dark Mode</span>
+          <span class="helper-text" data-i18n="heroHelper">Tüm uyumlu sayfalarda etkinleştir</span>
         </div>
         <div class="toggle">
           <input type="checkbox" id="globalToggle" aria-label="Dark Mode">
           <span class="toggle-track"><span class="toggle-thumb"></span></span>
         </div>
       </label>
+    </div>
+
+    <div class="card intensity-card">
+      <div class="section-heading">
+        <div>
+          <div class="mode-header" data-i18n="intensityHeader">Koyuluk</div>
+          <div class="section-subtitle" data-i18n="intensitySubtitle">Sayfaların ne kadar koyulaşacağı</div>
+        </div>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M12 3a9 9 0 0 0 0 18"/></svg>
+      </div>
+      <div class="auto-buttons">
+        <button type="button" class="auto-btn" id="intSoft" data-intensity="soft" data-i18n="intensitySoft">Yumuşak</button>
+        <button type="button" class="auto-btn active" id="intMedium" data-intensity="medium" data-i18n="intensityMedium">Normal</button>
+        <button type="button" class="auto-btn" id="intDeep" data-intensity="deep" data-i18n="intensityDeep">Koyu</button>
+      </div>
     </div>
 
     <div class="card site-toggle">
@@ -44,9 +59,9 @@
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
           </div>
           <div class="site-info">
-            <span class="toggle-label">Bu site için aktif</span>
+            <span class="toggle-label" data-i18n="siteActive">Bu site için aktif</span>
             <span class="hostname" id="currentHost"></span>
-            <span class="scanner-state" id="scannerState">Kontrol ediliyor…</span>
+            <span class="scanner-state" id="scannerState" data-i18n="scannerChecking">Kontrol ediliyor…</span>
           </div>
         </div>
         <div class="toggle">
@@ -54,39 +69,49 @@
           <span class="toggle-track"><span class="toggle-thumb"></span></span>
         </div>
       </label>
+      <div class="site-actions">
+        <button type="button" class="mini-btn" id="reDetectBtn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          <span data-i18n="reDetect">Yeniden algıla</span>
+        </button>
+        <button type="button" class="mini-btn" id="markDarkBtn" aria-pressed="false">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+          <span id="markDarkLabel" data-i18n="markDark">Zaten koyu</span>
+        </button>
+      </div>
     </div>
 
     <div class="card automation-card">
       <div class="section-heading">
         <div>
-          <div class="mode-header">Otomasyon</div>
-          <div class="section-subtitle">Ne zaman devreye gireceğini seç</div>
+          <div class="mode-header" data-i18n="autoHeader">Otomasyon</div>
+          <div class="section-subtitle" data-i18n="autoSubtitle">Ne zaman devreye gireceğini seç</div>
         </div>
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
       </div>
       <div class="auto-buttons">
-        <button type="button" class="auto-btn active" id="autoManual" data-auto="manual">Manuel</button>
-        <button type="button" class="auto-btn" id="autoSystem" data-auto="system">Sistem</button>
-        <button type="button" class="auto-btn" id="autoTime" data-auto="time">Zaman</button>
+        <button type="button" class="auto-btn active" id="autoManual" data-auto="manual" data-i18n="autoManual">Manuel</button>
+        <button type="button" class="auto-btn" id="autoSystem" data-auto="system" data-i18n="autoSystem">Sistem</button>
+        <button type="button" class="auto-btn" id="autoTime" data-auto="time" data-i18n="autoTime">Zaman</button>
       </div>
       <div class="time-inputs" id="timeInputs" style="display:none">
         <div class="time-row">
-          <label>Başlangıç</label>
+          <label data-i18n="timeStartLabel">Başlangıç</label>
           <input type="time" id="timeStart" value="20:00">
         </div>
         <div class="time-row">
-          <label>Bitiş</label>
+          <label data-i18n="timeEndLabel">Bitiş</label>
           <input type="time" id="timeEnd" value="07:00">
         </div>
       </div>
-      <div class="auto-desc"><span class="mini-dot"></span><span id="autoDesc">Kendin aç/kapa</span></div>
+      <div class="auto-desc"><span class="mini-dot"></span><span id="autoDesc" data-i18n="autoDescManual">Kendin aç/kapa</span></div>
     </div>
 
     <div class="card disabled-sites">
       <button type="button" class="expand-btn" id="expandBtn">
         <span class="expand-label">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5l14 14M19 5L5 19"/></svg>
-          Devre Dışı Siteler
+          <span data-i18n="disabledSitesLabel">Devre Dışı Siteler</span>
         </span>
         <div class="expand-right">
           <span class="count" id="siteCount">0</span>
@@ -97,9 +122,9 @@
     </div>
 
     <div class="shortcuts-hint">
-      <div><kbd>Alt Shift D</kbd><span>Genel</span></div>
+      <div><kbd>Alt Shift D</kbd><span data-i18n="shortcutGlobal">Genel</span></div>
       <span class="shortcut-divider"></span>
-      <div><kbd>Alt Shift A</kbd><span>Bu site</span></div>
+      <div><kbd>Alt Shift A</kbd><span data-i18n="shortcutSite">Bu site</span></div>
     </div>
 
     <footer>
@@ -108,7 +133,11 @@
           <polyline points="1 4 1 10 7 10"></polyline>
           <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
         </svg>
-        Sıfırla
+        <span data-i18n="reset">Sıfırla</span>
+      </button>
+      <button type="button" class="reset-btn" id="settingsBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span data-i18n="openSettings">Ayarlar</span>
       </button>
     </footer>
 

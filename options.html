@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="optionsTitle">SensoDark Ayarları</title>
+  <style>
+    :root {
+      --bg: #0d0e17;
+      --panel: #171927;
+      --panel-soft: #121420;
+      --border: #292d42;
+      --border-strong: #353a55;
+      --text: #f3f1ff;
+      --text-soft: #a4a7bd;
+      --text-dim: #696d87;
+      --accent: #8164ff;
+      --accent-bright: #9c86ff;
+      --accent-soft: rgba(129, 100, 255, 0.14);
+      --success: #52d6a0;
+      --danger: #ff6b7a;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background:
+        radial-gradient(circle at 80% -5%, rgba(129, 100, 255, 0.12), transparent 40%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 640px; margin: 0 auto; padding: 40px 24px 64px; }
+    header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+    .mark {
+      width: 44px; height: 44px; display: grid; place-items: center; color: #fff;
+      background: linear-gradient(145deg, var(--accent-bright), #6443ed);
+      border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 13px;
+      box-shadow: 0 8px 22px rgba(82, 55, 201, 0.28);
+    }
+    h1 { font-size: 20px; font-weight: 750; letter-spacing: -0.3px; }
+    .subtitle { color: var(--text-dim); font-size: 12px; margin-top: 2px; }
+    .card {
+      background: linear-gradient(145deg, rgba(29, 32, 49, 0.96), rgba(23, 25, 39, 0.96));
+      border: 1px solid var(--border); border-radius: 14px; padding: 20px;
+      margin-bottom: 16px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    }
+    .card h2 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .card p.desc { color: var(--text-dim); font-size: 12px; margin-bottom: 16px; }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px;
+      color: #c4b8ff; background: var(--accent-soft);
+      border: 1px solid rgba(129, 100, 255, 0.4); border-radius: 9px;
+      font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: background 0.18s, border-color 0.18s;
+    }
+    .btn:hover { background: rgba(129, 100, 255, 0.24); border-color: rgba(129, 100, 255, 0.7); }
+    .toast { margin-top: 14px; font-size: 12px; font-weight: 600; min-height: 16px; }
+    .toast.ok { color: var(--success); }
+    .toast.err { color: var(--danger); }
+    ul.list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    ul.list li {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 12px; background: var(--panel-soft);
+      border: 1px solid #24283a; border-radius: 9px; font-size: 12px;
+    }
+    ul.list li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .empty { color: var(--text-dim); font-size: 12px; font-style: italic; }
+    .rm {
+      color: var(--danger); background: none; border: 0; font: inherit; font-size: 12px;
+      font-weight: 600; cursor: pointer; opacity: 0.7; flex: 0 0 auto; margin-left: 12px;
+    }
+    .rm:hover { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="mark">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1 data-i18n="optionsTitle">SensoDark Ayarları</h1>
+        <div class="subtitle" data-i18n="optionsSubtitle">Yedekleme ve gelişmiş seçenekler</div>
+      </div>
+    </header>
+
+    <div class="card">
+      <h2 data-i18n="backupHeader">Ayarları Yedekle</h2>
+      <p class="desc" data-i18n="backupDesc">Tüm ayarlarını ve site listelerini bir dosyaya aktar ya da geri yükle.</p>
+      <div class="btn-row">
+        <button type="button" class="btn" id="exportBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span data-i18n="exportBtn">Dışa Aktar</span>
+        </button>
+        <button type="button" class="btn" id="importBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span data-i18n="importBtn">İçe Aktar</span>
+        </button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+      </div>
+      <div class="toast" id="toast"></div>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="userDarkHeader">Koyu Olarak İşaretlenen Siteler</h2>
+      <p class="desc" data-i18n="userDarkDesc">Bu sitelerde tarayıcı çalışmaz; siteyi olduğu gibi bırakır.</p>
+      <ul class="list" id="userDarkList"></ul>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="disabledHeader">Devre Dışı Siteler</h2>
+      <p class="desc" data-i18n="disabledDesc">Bu sitelerde dark mode tamamen kapalıdır.</p>
+      <ul class="list" id="disabledList"></ul>
+    </div>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -22,6 +22,22 @@
     raised:    "#32363e"
   };
 
+  // ── Darkness intensity ──
+  // Scales every surface target luminance and the page base. 1 = default.
+  var BASE_RGB = [26, 27, 30];
+  var INTENSITY = { soft: 1.42, medium: 1, deep: 0.74 };
+  var intensityScale = 1;
+  var appliedIntensity = null;
+
+  function effectiveBase() {
+    var s = intensityScale;
+    return rgb(
+      Math.min(BASE_RGB[0] * s, 60),
+      Math.min(BASE_RGB[1] * s, 60),
+      Math.min(BASE_RGB[2] * s, 62)
+    );
+  }
+
   // ══════════════════════════════════════════
   // Known dark sites — skip entirely
   // ══════════════════════════════════════════
@@ -95,10 +111,11 @@
   // CSS builders
   // ══════════════════════════════════════════
   function buildSmartCSS() {
+    var base = effectiveBase();
     return [
       ":root{color-scheme:dark !important}",
-      "html{background-color:" + C.base + " !important;color:" + C.text + " !important}",
-      "body{background-color:" + C.base + " !important;color:" + C.text + " !important}",
+      "html{background-color:" + base + " !important;color:" + C.text + " !important}",
+      "body{background-color:" + base + " !important;color:" + C.text + " !important}",
 
       // Keep the site's hierarchy and brand colors; the scanner handles surfaces.
       "input,textarea,select,button,option{color-scheme:dark}",
@@ -121,10 +138,10 @@
       "::selection{background:rgba(124,92,252,0.3) !important;color:#fff !important}",
       "::placeholder{color:#9a978f !important;opacity:1 !important}",
 
-      "::-webkit-scrollbar{background:" + C.base + ";width:10px}",
+      "::-webkit-scrollbar{background:" + base + ";width:10px}",
       "::-webkit-scrollbar-thumb{background:" + C.border + ";border-radius:5px}",
       "::-webkit-scrollbar-thumb:hover{background:#50535a}",
-      "::-webkit-scrollbar-track{background:" + C.base + "}",
+      "::-webkit-scrollbar-track{background:" + base + "}",
 
       "hr{border-color:" + C.border + " !important;background-color:" + C.border + " !important}",
 
@@ -298,12 +315,12 @@
 
     if (info.chroma > 55 && info.lum < 170) return null;
     if (info.chroma > 55) return darkenColor(info, 90);
-    if (isControl) return darkenColor(info, 46);
-    if (isPageLayer) return darkenColor(info, 27);
+    if (isControl) return darkenColor(info, 46 * intensityScale);
+    if (isPageLayer) return darkenColor(info, 27 * intensityScale);
     if (radius >= 3 || style.boxShadow !== "none" || tag === "LI") {
-      return darkenColor(info, 40);
+      return darkenColor(info, 40 * intensityScale);
     }
-    return darkenColor(info, 33);
+    return darkenColor(info, 33 * intensityScale);
   }
 
   // Light, low-chroma gradients (white→gray sheens etc.) stay bright on the
@@ -640,12 +657,25 @@
         darkDetectionDone = true;
       }
 
-      if (pageDarkDetected || isKnownDarkSite) {
+      var userDark = (settings.userDarkSites || []).indexOf(hostname) !== -1;
+      if (pageDarkDetected || isKnownDarkSite || userDark) {
         removeStyle();
       } else {
         scannerActive = true;
+        var wanted = settings.intensity || "medium";
+        var newScale = INTENSITY[wanted] || 1;
+        // Re-theming with a new intensity: drop old surfaces before rescanning
+        if (appliedIntensity !== null && appliedIntensity !== wanted) {
+          restoreScannedElements(document);
+          shadowRoots.forEach(function (root) { restoreScannedElements(root); });
+        }
+        intensityScale = newScale;
+        appliedIntensity = wanted;
         applyStyle(settings);
         if (document.body) scanPage();
+        shadowRoots.forEach(function (root) {
+          if (root.host && root.host.isConnected) scanTree(root, false);
+        });
         startObservers();
       }
     } else {
@@ -680,27 +710,42 @@
   // ══════════════════════════════════════════
   // Initialize
   // ══════════════════════════════════════════
-  chrome.storage.local.get("settings", function (result) {
+  chrome.storage.sync.get("settings", function (result) {
     if (result.settings) update(result.settings);
     else removeFallback();
   });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
-      chrome.storage.local.get("settings", function (result) {
+      chrome.storage.sync.get("settings", function (result) {
         if (result.settings) update(result.settings);
       });
     });
   }
 
   chrome.storage.onChanged.addListener(function (changes, area) {
-    if (area === "local" && changes.settings) {
+    if (area === "sync" && changes.settings) {
       update(changes.settings.newValue);
     }
   });
 
   chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-    if (!message || message.type !== "GET_DIAGNOSTICS") return;
+    if (!message) return;
+
+    if (message.type === "RE_DETECT") {
+      // Forget the earlier verdict and re-run detection from scratch. Useful
+      // when the site toggled its own theme after we already made a decision.
+      darkDetectionDone = false;
+      pageDarkDetected = false;
+      removeStyle();
+      chrome.storage.sync.get("settings", function (result) {
+        if (result.settings) update(result.settings);
+      });
+      sendResponse({ ok: true });
+      return;
+    }
+
+    if (message.type !== "GET_DIAGNOSTICS") return;
     sendResponse({
       connected: true,
       hostname: hostname,

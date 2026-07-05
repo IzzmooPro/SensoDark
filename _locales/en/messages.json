@@ -1,0 +1,68 @@
+{
+  "appName": { "message": "SensoDark" },
+  "appDesc": { "message": "Safe, lightweight and transparent dark mode extension. Minimal permissions, maximum privacy." },
+  "cmdToggleDark": { "message": "Toggle Dark Mode" },
+  "cmdToggleSite": { "message": "Toggle for this site" },
+
+  "tagline": { "message": "Smart dark mode" },
+  "statusOn": { "message": "On" },
+  "statusOff": { "message": "Off" },
+  "heroTitle": { "message": "Dark Mode" },
+  "heroHelper": { "message": "Enable on all compatible pages" },
+
+  "intensityHeader": { "message": "Darkness" },
+  "intensitySubtitle": { "message": "How dark pages become" },
+  "intensitySoft": { "message": "Soft" },
+  "intensityMedium": { "message": "Medium" },
+  "intensityDeep": { "message": "Deep" },
+
+  "siteActive": { "message": "Active on this site" },
+  "reDetect": { "message": "Re-detect" },
+  "markDark": { "message": "Already dark" },
+  "unmarkDark": { "message": "Remove dark mark" },
+
+  "autoHeader": { "message": "Automation" },
+  "autoSubtitle": { "message": "Choose when it kicks in" },
+  "autoManual": { "message": "Manual" },
+  "autoSystem": { "message": "System" },
+  "autoTime": { "message": "Time" },
+  "autoDescManual": { "message": "Toggle it yourself" },
+  "autoDescSystem": { "message": "Follow the Windows theme" },
+  "autoDescTime": { "message": "Automatic at set hours" },
+  "timeStartLabel": { "message": "Start" },
+  "timeEndLabel": { "message": "End" },
+
+  "disabledSitesLabel": { "message": "Disabled Sites" },
+  "shortcutGlobal": { "message": "Global" },
+  "shortcutSite": { "message": "This site" },
+  "reset": { "message": "Reset" },
+  "openSettings": { "message": "Settings" },
+
+  "scannerChecking": { "message": "Checking…" },
+  "scannerUnavailable": { "message": "Not available on this page" },
+  "scannerKnownDark": { "message": "Known dark site · skipped" },
+  "scannerUserDark": { "message": "Marked dark · skipped" },
+  "scannerDetectedDark": { "message": "Dark theme detected · skipped" },
+  "scannerActive": {
+    "message": "Scanner active · $count$ elements",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "scannerNoStyle": { "message": "Style not applied" },
+  "scannerNoAccess": { "message": "Page not reachable" },
+
+  "optionsTitle": { "message": "SensoDark Settings" },
+  "optionsSubtitle": { "message": "Backup and advanced options" },
+  "backupHeader": { "message": "Back Up Settings" },
+  "backupDesc": { "message": "Export all your settings and site lists to a file, or restore them." },
+  "exportBtn": { "message": "Export" },
+  "importBtn": { "message": "Import" },
+  "importSuccess": { "message": "Settings imported." },
+  "importError": { "message": "File could not be read or is invalid." },
+  "exportSuccess": { "message": "Settings exported." },
+  "userDarkHeader": { "message": "Sites Marked as Dark" },
+  "userDarkDesc": { "message": "The scanner is skipped on these sites; they are left untouched." },
+  "disabledHeader": { "message": "Disabled Sites" },
+  "disabledDesc": { "message": "Dark mode is fully off on these sites." },
+  "emptyList": { "message": "List is empty." },
+  "removeBtn": { "message": "Remove" }
+}
