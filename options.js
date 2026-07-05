@@ -96,6 +96,26 @@ async function init() {
     showToast(msg("exportSuccess"), "ok");
   });
 
+  $("copyBtcBtn").addEventListener("click", async () => {
+    const addr = $("btcAddr").textContent.trim();
+    const label = $("copyBtcLabel");
+    try {
+      await navigator.clipboard.writeText(addr);
+    } catch (_) {
+      // Fallback for older browsers / permission edge cases
+      const r = document.createRange();
+      r.selectNodeContents($("btcAddr"));
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+      try { document.execCommand("copy"); } catch (e) {}
+      sel.removeAllRanges();
+    }
+    const original = label.textContent;
+    label.textContent = msg("copiedMsg");
+    setTimeout(() => { label.textContent = original; }, 1800);
+  });
+
   $("importBtn").addEventListener("click", () => $("importFile").click());
 
   $("importFile").addEventListener("change", (e) => {

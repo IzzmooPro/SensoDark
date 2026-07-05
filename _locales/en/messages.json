@@ -64,5 +64,12 @@
   "disabledHeader": { "message": "Disabled Sites" },
   "disabledDesc": { "message": "Dark mode is fully off on these sites." },
   "emptyList": { "message": "List is empty." },
-  "removeBtn": { "message": "Remove" }
+  "removeBtn": { "message": "Remove" },
+
+  "donateHeader": { "message": "Support with a Donation" },
+  "donateDesc": { "message": "SensoDark is free and ad-free. If you like it, you can buy me a coffee — thank you!" },
+  "donateBtcLabel": { "message": "Bitcoin (BTC) address" },
+  "copyBtn": { "message": "Copy" },
+  "copiedMsg": { "message": "Copied!" },
+  "popupDonate": { "message": "Donate" }
 }

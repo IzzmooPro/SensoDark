@@ -200,6 +200,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     chrome.runtime.openOptionsPage();
   });
 
+  const donateBtn = $("donateBtn");
+  donateBtn.addEventListener("click", () => {
+    chrome.runtime.openOptionsPage();
+  });
+
   // ── Helpers ──
 
   async function updateScannerState() {

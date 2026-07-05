@@ -64,5 +64,12 @@
   "disabledHeader": { "message": "Devre Dışı Siteler" },
   "disabledDesc": { "message": "Bu sitelerde dark mode tamamen kapalıdır." },
   "emptyList": { "message": "Liste boş." },
-  "removeBtn": { "message": "Kaldır" }
+  "removeBtn": { "message": "Kaldır" },
+
+  "donateHeader": { "message": "Bağış ile Destek Ol" },
+  "donateDesc": { "message": "SensoDark ücretsiz ve reklamsız. Beğendiysen bir kahve ısmarlayabilirsin — teşekkürler!" },
+  "donateBtcLabel": { "message": "Bitcoin (BTC) adresi" },
+  "copyBtn": { "message": "Kopyala" },
+  "copiedMsg": { "message": "Kopyalandı!" },
+  "popupDonate": { "message": "Bağış" }
 }

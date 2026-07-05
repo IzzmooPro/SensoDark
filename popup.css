@@ -649,6 +649,16 @@ footer {
   border-color: rgba(129, 100, 255, 0.18);
 }
 
+.donate-btn svg {
+  color: var(--danger);
+}
+
+#donateBtn:hover {
+  color: var(--danger);
+  background: rgba(255, 107, 122, 0.08);
+  border-color: rgba(255, 107, 122, 0.2);
+}
+
 .site-list::-webkit-scrollbar {
   width: 4px;
 }
