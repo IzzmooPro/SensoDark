@@ -45,7 +45,7 @@
     var host = location.hostname;
     var path = location.pathname;
 
-    // Dark Reader style "$" anchor: path must match exactly instead of by prefix
+    // Trailing "$" anchors the path: match it exactly instead of by prefix
     var exact = false;
     if (pattern.charAt(pattern.length - 1) === "$") {
       exact = true;
