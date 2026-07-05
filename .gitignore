@@ -1,6 +1,9 @@
 # Build artifacts
 dist/*.zip
 
+# Local backups (kept out of the shipped extension; history has the original)
+backup/
+
 # Local tooling / editor state
 .claude/settings.local.json
 
