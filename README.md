@@ -9,7 +9,7 @@
 [![Languages](https://img.shields.io/badge/languages-6-2a2d34)](_locales)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c5cfc)](LICENSE)
 
-### 🇬🇧 [English](#-english) &nbsp;·&nbsp; 🇹🇷 [Türkçe](#-türkçe)
+### 🇬🇧 [English](#user-content--english) &nbsp;·&nbsp; 🇹🇷 [Türkçe](#user-content--türkçe-sürüm)
 
 </div>
 
@@ -86,7 +86,7 @@ Issues and pull requests are welcome. If you're fixing a theming edge case, add 
 
 ## 🇹🇷 Türkçe Sürüm
 
-*(İngilizce sürüm için [yukarı çıkın](#-sensodark))*
+*(İngilizce sürüm için [yukarı çıkın](#user-content--sensodark))*
 
 ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 
