@@ -874,6 +874,23 @@
     });
   }
 
+  // Some sites resolve part of their own CSS (custom properties, native
+  // dark-mode classes) slightly after DOMContentLoaded — an element judged
+  // "light enough already" against that not-yet-settled style can end up
+  // genuinely dark once the site's real CSS applies, with no DOM mutation
+  // to trigger a re-scan (stylesheets finishing don't fire one). Force one
+  // clean, non-destructive re-check once the page has fully loaded so any
+  // such surface gets corrected the way a manual toggle already does.
+  if (document.readyState !== "complete") {
+    window.addEventListener("load", function () {
+      if (!scannerActive) return;
+      scanTree(document.body, true);
+      shadowRoots.forEach(function (root) {
+        if (root.host && root.host.isConnected) scanTree(root, true);
+      });
+    }, { once: true });
+  }
+
   chrome.storage.onChanged.addListener(function (changes, area) {
     if (area === "sync" && changes.settings) {
       update(changes.settings.newValue);
