@@ -4,7 +4,7 @@
 
 **A Chrome extension that darkens the web the way you'd do it by hand — scanning each page instead of slapping a filter over it.**
 
-[![Version](https://img.shields.io/badge/version-1.7.0-7c5cfc)](https://github.com/IzzmooPro/SensoDark/releases)
+[![Version](https://img.shields.io/badge/version-1.7.1-7c5cfc)](https://github.com/IzzmooPro/SensoDark/releases)
 [![Manifest](https://img.shields.io/badge/manifest-v3-2a2d34)](manifest.json)
 [![Languages](https://img.shields.io/badge/languages-6-2a2d34)](_locales)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c5cfc)](LICENSE)
