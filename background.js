@@ -8,6 +8,28 @@ const DEFAULTS = {
   userDarkSites: []
 };
 
+const PRELOAD_SCRIPT_ID = "sensodark-preload";
+
+async function syncPreloadRegistration(enabled) {
+  const registered = await chrome.scripting.getRegisteredContentScripts({
+    ids: [PRELOAD_SCRIPT_ID]
+  });
+  const exists = registered.length > 0;
+
+  if (enabled && !exists) {
+    await chrome.scripting.registerContentScripts([{
+      id: PRELOAD_SCRIPT_ID,
+      matches: ["<all_urls>"],
+      css: ["preload.css"],
+      runAt: "document_start",
+      allFrames: true,
+      persistAcrossSessions: true
+    }]);
+  } else if (!enabled && exists) {
+    await chrome.scripting.unregisterContentScripts({ ids: [PRELOAD_SCRIPT_ID] });
+  }
+}
+
 async function ensureInitialized() {
   let { settings } = await chrome.storage.sync.get("settings");
 
@@ -29,6 +51,7 @@ async function ensureInitialized() {
   if (!settings || JSON.stringify(settings) !== JSON.stringify(merged)) {
     await chrome.storage.sync.set({ settings: merged });
   }
+  await syncPreloadRegistration(merged.enabled);
 
   const alarm = await chrome.alarms.get("sensodark-time-check");
   if (!alarm) chrome.alarms.create("sensodark-time-check", { periodInMinutes: 1 });
@@ -38,6 +61,11 @@ async function ensureInitialized() {
 chrome.runtime.onInstalled.addListener(() => ensureInitialized());
 chrome.runtime.onStartup.addListener(() => ensureInitialized());
 ensureInitialized().catch(() => {});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== "sync" || !changes.settings?.newValue) return;
+  syncPreloadRegistration(!!changes.settings.newValue.enabled).catch(() => {});
+});
 
 // ── Badge ──
 // Tab states live in storage.session so they survive service worker restarts

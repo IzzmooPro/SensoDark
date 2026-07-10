@@ -1,0 +1,7 @@
+/* Applied by Chrome before the page's first paint while SensoDark is enabled. */
+html:not([data-sensodark-preload-ready]),
+html:not([data-sensodark-preload-ready]) body {
+  background-color: #1a1b1e !important;
+  color: #c9c5be !important;
+  color-scheme: dark !important;
+}

@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", async () => {
   applyI18n();
 
+  document.getElementById("versionLabel").textContent =
+    "v" + chrome.runtime.getManifest().version;
+
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   let hostname = "";
   try {
@@ -70,9 +73,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   function save(patch) {
     Object.assign(localSettings, patch);
     saving = true;
-    chrome.storage.sync.set({ settings: { ...localSettings } }, () => {
+    const nextSettings = { ...localSettings };
+    chrome.storage.sync.set({ settings: nextSettings }, () => {
       saving = false;
+      applyToCurrentTab(nextSettings);
     });
+  }
+
+  async function applyToCurrentTab(settings) {
+    if (!tab || !tab.id || !/^https?:/.test(tab.url || "")) return;
+
+    try {
+      await chrome.tabs.sendMessage(
+        tab.id,
+        { type: "APPLY_SETTINGS", settings },
+        { frameId: 0 }
+      );
+    } catch (_) {
+      // Tabs that were already open when the extension was installed, reloaded
+      // or re-enabled do not have a content script until they are refreshed.
+      // Inject it into the active page so toggling works without a reload.
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id, frameIds: [0] },
+          files: ["dark-sites.js", "content.js"],
+        });
+      } catch (_) {}
+    }
   }
 
   // Keep UI in sync when settings change elsewhere (shortcut, alarm, system, sync)
@@ -303,7 +330,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   function setControlsState(enabled) {
     document.body.classList.toggle("is-off", !enabled);
     statusText.textContent = enabled ? msg("statusOn") : msg("statusOff");
-    document.querySelectorAll(".site-toggle, .automation-card, .intensity-card").forEach((el) => {
+    // Automation must remain configurable while the extension is currently
+    // off (for example, outside a scheduled time range).
+    document.querySelectorAll(".site-toggle, .intensity-card").forEach((el) => {
       el.classList.toggle("disabled", !enabled);
     });
   }

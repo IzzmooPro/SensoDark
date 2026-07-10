@@ -1,11 +1,25 @@
 (function () {
   "use strict";
 
+  // The popup can inject the content scripts into a tab that was already open
+  // when the extension was enabled. Avoid duplicate observers if this frame is
+  // already initialized.
+  if (globalThis.__sensoDarkLoaded) return;
+  globalThis.__sensoDarkLoaded = true;
+
   var STYLE_ID = "sensodark-style";
   var FALLBACK_ID = "sensodark-fallback";
+  var PRELOAD_READY_ATTR = "data-sensodark-preload-ready";
   var SCAN_ATTR = "data-sensodark-scanned";
   var BEFORE_BG_ATTR = "data-sensodark-before-bg";
   var AFTER_BG_ATTR = "data-sensodark-after-bg";
+  var BEFORE_FILTER_ATTR = "data-sensodark-before-filter";
+  var AFTER_FILTER_ATTR = "data-sensodark-after-filter";
+  var HOVER_ATTR = "data-sensodark-hover";
+  var HOVER_BG_VAR = "--sensodark-hover-bg";
+  // Inverts luminance while rotating hue back, which keeps brand colors much
+  // closer to their original hue than a plain invert filter.
+  var ASSET_FILTER = "invert(1) hue-rotate(180deg) brightness(1.15)";
   var hostname = location.hostname;
 
   var C = {
@@ -102,7 +116,7 @@
     if (!isKnownDarkSite && sessionStorage.getItem(SESSION_KEY) === "1") {
       var fb = document.createElement("style");
       fb.id = FALLBACK_ID;
-      fb.textContent = "html{background-color:" + C.base + " !important;color-scheme:dark !important;color:" + C.text + " !important}";
+      fb.textContent = "html,body{background-color:" + C.base + " !important;color-scheme:dark !important;color:" + C.text + " !important}";
       (document.head || document.documentElement).appendChild(fb);
     }
   } catch (_) {}
@@ -147,6 +161,11 @@
 
       "[" + BEFORE_BG_ATTR + "]::before{background-color:var(--sensodark-before-bg) !important}",
       "[" + AFTER_BG_ATTR + "]::after{background-color:var(--sensodark-after-bg) !important}",
+
+      "[" + BEFORE_FILTER_ATTR + "]::before{filter:" + ASSET_FILTER + " !important}",
+      "[" + AFTER_FILTER_ATTR + "]::after{filter:" + ASSET_FILTER + " !important}",
+
+      "[" + HOVER_ATTR + "]:hover{background-color:var(" + HOVER_BG_VAR + ") !important}",
 
       // Media pixels must not blend with the darkened parent surface.
       "img,video,canvas,picture,svg,iframe,embed,object,[role='img']{" +
@@ -254,6 +273,9 @@
     element.removeAttribute(SCAN_ATTR);
     element.removeAttribute(BEFORE_BG_ATTR);
     element.removeAttribute(AFTER_BG_ATTR);
+    element.removeAttribute(BEFORE_FILTER_ATTR);
+    element.removeAttribute(AFTER_FILTER_ATTR);
+    element.removeAttribute(HOVER_ATTR);
   }
 
   function getLuminance(color) {
@@ -356,6 +378,76 @@
     if (!el.getAttribute(SCAN_ATTR)) el.setAttribute(SCAN_ATTR, "g");
   }
 
+  function hasAssetHint(el) {
+    var hint = [
+      el.id || "",
+      typeof el.className === "string" ? el.className : "",
+      el.getAttribute("title") || "",
+      el.getAttribute("aria-label") || "",
+      el.getAttribute("role") || ""
+    ].join(" ").toLowerCase();
+    return /(logo|brand|icon|symbol|avatar|account|profile|search|menu|heart|favorite|wishlist|bell|notification)/.test(hint);
+  }
+
+  // The nearest painted background behind an element, following the already
+  // darkened inline styles the scanner applied to ancestors.
+  function effectiveBackdrop(el) {
+    var chain = el;
+    var info = null;
+    while (chain && !info) {
+      info = getColorInfo(getComputedStyle(chain).backgroundColor);
+      chain = chain.parentElement;
+    }
+    return info;
+  }
+
+  // Small logos and UI icons are often delivered as CSS background sprites.
+  // Dark pixels in those assets can disappear after their parent surface is
+  // darkened. Rescue likely UI assets without touching photos or large banners.
+  function adjustBackgroundAsset(el, style, rect) {
+    var image = style.backgroundImage;
+    if (!image || image === "none" || image.indexOf("url(") === -1) return;
+    if (style.filter && style.filter !== "none") return;
+    if (!rect || rect.width < 10 || rect.height < 10 || rect.width > 260 || rect.height > 120) return;
+    // Visible text would get inverted along with the sprite; text pushed
+    // off-screen (image-replacement pattern) is fine.
+    if ((el.textContent || "").trim() && parseFloat(style.textIndent) > -999) return;
+
+    var tag = el.tagName;
+    var href = tag === "A" ? (el.getAttribute("href") || "") : "";
+    var rootLink = tag === "A" && (href === "/" || href === location.origin || href === location.origin + "/");
+    if (!hasAssetHint(el) && !rootLink) return;
+
+    var parentInfo = el.parentElement && effectiveBackdrop(el.parentElement);
+    if (!parentInfo || parentInfo.lum > 90) return;
+
+    setTrackedStyle(el, "filter", ASSET_FILTER);
+    if (!el.getAttribute(SCAN_ATTR)) el.setAttribute(SCAN_ATTR, "a");
+  }
+
+  // Icons drawn as ::before/::after sprites (common image-replacement pattern)
+  // have no element of their own to filter; tag the host instead and let our
+  // stylesheet invert just the pseudo box.
+  function adjustPseudoAsset(el, pseudo, attribute) {
+    var style = getComputedStyle(el, pseudo);
+    if (!style || style.content === "none") return;
+    var image = style.backgroundImage;
+    if (!image || image === "none" || image.indexOf("url(") === -1) return;
+    if (style.filter && style.filter !== "none") return;
+    var w = parseFloat(style.width);
+    var h = parseFloat(style.height);
+    if (!w || !h || w < 10 || h < 10 || w > 260 || h > 120) return;
+    // Icon-sized pseudos qualify on their own; larger artwork needs the same
+    // semantic hint the element version demands.
+    if ((w > 64 || h > 64) && !hasAssetHint(el)) return;
+
+    var backdrop = effectiveBackdrop(el);
+    if (!backdrop || backdrop.lum > 90) return;
+
+    el.setAttribute(attribute, "true");
+    if (!el.getAttribute(SCAN_ATTR)) el.setAttribute(SCAN_ATTR, "a");
+  }
+
   function adjustTextColor(el, style) {
     var info = getColorInfo(style.color);
     if (info && info.lum < 115) {
@@ -380,6 +472,9 @@
     if (!surface) return;
     setTrackedStyle(el, property, surface);
     el.setAttribute(attribute, "true");
+    // Pseudo backgrounds are adjusted before the regular element size check.
+    // Mark the host immediately so even tiny elements are restored on disable.
+    if (!el.getAttribute(SCAN_ATTR)) el.setAttribute(SCAN_ATTR, "p");
   }
 
   function scanElement(el) {
@@ -393,22 +488,30 @@
     var style = getComputedStyle(el);
     adjustPseudoBackground(el, "::before", BEFORE_BG_ATTR, "--sensodark-before-bg", style);
     adjustPseudoBackground(el, "::after", AFTER_BG_ATTR, "--sensodark-after-bg", style);
+    adjustPseudoAsset(el, "::before", BEFORE_FILTER_ATTR);
+    adjustPseudoAsset(el, "::after", AFTER_FILTER_ATTR);
 
     if (isInline) {
+      var inlineRect = el.getBoundingClientRect();
       adjustTextColor(el, style);
       var inlineInfo = getColorInfo(style.backgroundColor);
       if (inlineInfo && inlineInfo.lum > 80) {
-        var inlineSurface = chooseSurface(el, style, el.getBoundingClientRect(), inlineInfo);
+        var inlineSurface = chooseSurface(el, style, inlineRect, inlineInfo);
         if (inlineSurface) setTrackedStyle(el, "background-color", inlineSurface);
       }
       adjustGradient(el, style, inlineInfo);
+      adjustBackgroundAsset(el, style, inlineRect);
       adjustBorder(el, style);
       el.setAttribute(SCAN_ATTR, "i");
       return;
     }
 
     var rect = el.getBoundingClientRect();
-    if (rect.width < 30 || rect.height < 20) return;
+    // 0×0 means hidden (dropdown menus, modals, lazy-rendered panels): theme
+    // those now so they are already dark when the site reveals them. Keep
+    // skipping genuinely tiny visible elements.
+    var isHidden = rect.width === 0 && rect.height === 0;
+    if (!isHidden && (rect.width < 30 || rect.height < 20)) return;
 
     var bgInfo = getColorInfo(style.backgroundColor);
     if (bgInfo && bgInfo.lum > 80) {
@@ -419,6 +522,7 @@
       }
     }
     adjustGradient(el, style, bgInfo);
+    adjustBackgroundAsset(el, style, rect);
 
     adjustTextColor(el, style);
     adjustBorder(el, style);
@@ -443,6 +547,30 @@
     }
     clearObserverRecords();
   }
+
+  // Sites often introduce light backgrounds only on :hover (menu items, icon
+  // buttons), which a static scan can never see. mouseover fires before the
+  // hover state is painted, so darkening here is invisible to the user. The
+  // override lives in a :hover rule so the element still looks untouched when
+  // the pointer leaves.
+  function onPointerOver(e) {
+    if (!scannerActive || pageDarkDetected) return;
+    var el = e.target;
+    for (var depth = 0; el && el.nodeType === 1 && depth < 4; el = el.parentElement, depth++) {
+      // Only elements the scanner fully processed: a light background on one
+      // of those is hover-induced, since static light backgrounds were
+      // already darkened with inline !important styles.
+      if (SKIP_TAGS[el.tagName] || el.getAttribute(HOVER_ATTR) || !el.getAttribute(SCAN_ATTR)) continue;
+      var style = getComputedStyle(el);
+      var info = getColorInfo(style.backgroundColor);
+      if (!info || info.lum <= 80) continue;
+      var surface = chooseSurface(el, style, el.getBoundingClientRect(), info);
+      if (!surface) continue;
+      setTrackedStyle(el, HOVER_BG_VAR, surface);
+      el.setAttribute(HOVER_ATTR, "true");
+    }
+  }
+  document.addEventListener("mouseover", onPointerOver, true);
 
   function scanTree(root, force) {
     if (!root || (root.nodeType !== 1 && root.nodeType !== 11)) return;
@@ -509,6 +637,12 @@
     if (fb) fb.remove();
   }
 
+  function resolvePreload() {
+    if (document.documentElement) {
+      document.documentElement.setAttribute(PRELOAD_READY_ATTR, "true");
+    }
+  }
+
   function applyLoadingFallback() {
     if (isKnownDarkSite) return;
     var fb = document.getElementById(FALLBACK_ID);
@@ -517,7 +651,7 @@
       fb.id = FALLBACK_ID;
       (document.head || document.documentElement).appendChild(fb);
     }
-    fb.textContent = "html{background-color:" + C.base + " !important;color-scheme:dark !important}";
+    fb.textContent = "html,body{background-color:" + C.base + " !important;color-scheme:dark !important}";
   }
 
   function applyStyle(settings) {
@@ -653,6 +787,9 @@
         removeFallback();
         var existingStyle = document.getElementById(STYLE_ID);
         if (existingStyle) existingStyle.remove();
+        // Neutralize the preload background first, or detection samples our
+        // own dark color and misreads a light page as already dark
+        resolvePreload();
         pageDarkDetected = isPageAlreadyDark();
         darkDetectionDone = true;
       }
@@ -684,6 +821,7 @@
     try {
       chrome.runtime.sendMessage({ type: "TAB_STATE", active: active, hostname: hostname });
     } catch (_) {}
+    resolvePreload();
   }
 
   // ══════════════════════════════════════════
@@ -712,7 +850,10 @@
   // ══════════════════════════════════════════
   chrome.storage.sync.get("settings", function (result) {
     if (result.settings) update(result.settings);
-    else removeFallback();
+    else {
+      removeFallback();
+      resolvePreload();
+    }
   });
 
   if (document.readyState === "loading") {
@@ -731,6 +872,12 @@
 
   chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     if (!message) return;
+
+    if (message.type === "APPLY_SETTINGS") {
+      update(message.settings);
+      sendResponse({ ok: true });
+      return;
+    }
 
     if (message.type === "RE_DETECT") {
       // Forget the earlier verdict and re-run detection from scratch. Useful
