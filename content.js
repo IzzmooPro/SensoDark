@@ -486,11 +486,12 @@
 
     var isInline = INLINE_TAGS[el.tagName];
     var style = getComputedStyle(el);
-    adjustPseudoBackground(el, "::before", BEFORE_BG_ATTR, "--sensodark-before-bg", style);
-    adjustPseudoBackground(el, "::after", AFTER_BG_ATTR, "--sensodark-after-bg", style);
-    adjustPseudoAsset(el, "::before", BEFORE_FILTER_ATTR);
-    adjustPseudoAsset(el, "::after", AFTER_FILTER_ATTR);
 
+    // Darken the element's own background BEFORE inspecting pseudo-icons:
+    // adjustPseudoAsset looks at the element itself first when walking up
+    // for a backdrop, so if it ran first it could see the pre-darkening
+    // (often light) color and decide the icon didn't need inverting, only
+    // for that same background to go dark a moment later.
     if (isInline) {
       var inlineRect = el.getBoundingClientRect();
       adjustTextColor(el, style);
@@ -502,6 +503,10 @@
       adjustGradient(el, style, inlineInfo);
       adjustBackgroundAsset(el, style, inlineRect);
       adjustBorder(el, style);
+      adjustPseudoBackground(el, "::before", BEFORE_BG_ATTR, "--sensodark-before-bg", style);
+      adjustPseudoBackground(el, "::after", AFTER_BG_ATTR, "--sensodark-after-bg", style);
+      adjustPseudoAsset(el, "::before", BEFORE_FILTER_ATTR);
+      adjustPseudoAsset(el, "::after", AFTER_FILTER_ATTR);
       el.setAttribute(SCAN_ATTR, "i");
       return;
     }
@@ -526,6 +531,11 @@
 
     adjustTextColor(el, style);
     adjustBorder(el, style);
+
+    adjustPseudoBackground(el, "::before", BEFORE_BG_ATTR, "--sensodark-before-bg", style);
+    adjustPseudoBackground(el, "::after", AFTER_BG_ATTR, "--sensodark-after-bg", style);
+    adjustPseudoAsset(el, "::before", BEFORE_FILTER_ATTR);
+    adjustPseudoAsset(el, "::after", AFTER_FILTER_ATTR);
 
     var shadow = style.boxShadow;
     if (shadow && shadow !== "none") {
