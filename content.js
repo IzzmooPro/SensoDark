@@ -15,6 +15,8 @@
   var AFTER_BG_ATTR = "data-sensodark-after-bg";
   var BEFORE_FILTER_ATTR = "data-sensodark-before-filter";
   var AFTER_FILTER_ATTR = "data-sensodark-after-filter";
+  var BEFORE_GRAD_ATTR = "data-sensodark-before-grad";
+  var AFTER_GRAD_ATTR = "data-sensodark-after-grad";
   var HOVER_ATTR = "data-sensodark-hover";
   var HOVER_BG_VAR = "--sensodark-hover-bg";
   // Inverts luminance while rotating hue back, which keeps brand colors much
@@ -165,6 +167,9 @@
       "[" + BEFORE_FILTER_ATTR + "]::before{filter:" + ASSET_FILTER + " !important}",
       "[" + AFTER_FILTER_ATTR + "]::after{filter:" + ASSET_FILTER + " !important}",
 
+      "[" + BEFORE_GRAD_ATTR + "]::before{background-image:none !important;background-color:" + C.surface1 + " !important}",
+      "[" + AFTER_GRAD_ATTR + "]::after{background-image:none !important;background-color:" + C.surface1 + " !important}",
+
       "[" + HOVER_ATTR + "]:hover{background-color:var(" + HOVER_BG_VAR + ") !important}",
 
       // Media pixels must not blend with the darkened parent surface.
@@ -275,6 +280,8 @@
     element.removeAttribute(AFTER_BG_ATTR);
     element.removeAttribute(BEFORE_FILTER_ATTR);
     element.removeAttribute(AFTER_FILTER_ATTR);
+    element.removeAttribute(BEFORE_GRAD_ATTR);
+    element.removeAttribute(AFTER_GRAD_ATTR);
     element.removeAttribute(HOVER_ATTR);
   }
 
@@ -345,16 +352,13 @@
     return darkenColor(info, 33 * intensityScale);
   }
 
-  // Light, low-chroma gradients (white→gray sheens etc.) stay bright on the
-  // darkened page; drop them and let the surface color take over. Colorful
-  // brand gradients are kept, same as chooseSurface keeps brand colors.
-  function adjustGradient(el, style, bgInfo) {
-    var image = style.backgroundImage;
-    if (!image || image === "none" || image.indexOf("gradient") === -1) return;
-    if (image.indexOf("url(") !== -1) return;
-
+  // Light, low-chroma gradients (white→gray sheens, shimmer dividers) stay
+  // bright on the darkened page; drop them in favor of a flat dark surface.
+  // Colorful brand gradients return false and are left alone, same as
+  // chooseSurface keeps brand colors.
+  function isLightDullGradient(image) {
     var stops = image.match(/rgba?\([^)]+\)|color\(srgb[^)]+\)/g);
-    if (!stops) return;
+    if (!stops) return false;
     var lum = 0;
     var chroma = 0;
     var count = 0;
@@ -366,15 +370,38 @@
         count++;
       }
     }
-    if (!count) return;
-    lum /= count;
-    chroma /= count;
-    if (lum <= 120 || chroma > 50) return;
+    if (!count) return false;
+    return lum / count > 120 && chroma / count <= 50;
+  }
+
+  function adjustGradient(el, style, bgInfo) {
+    var image = style.backgroundImage;
+    if (!image || image === "none" || image.indexOf("gradient") === -1) return;
+    if (image.indexOf("url(") !== -1) return;
+    if (!isLightDullGradient(image)) return;
 
     setTrackedStyle(el, "background-image", "none");
     if (!bgInfo || bgInfo.lum <= 80) {
       setTrackedStyle(el, "background-color", C.surface1);
     }
+    if (!el.getAttribute(SCAN_ATTR)) el.setAttribute(SCAN_ATTR, "g");
+  }
+
+  // Same idea as adjustGradient, but for gradients painted on ::before/
+  // ::after — an inline style can't reach a pseudo-element, so a boolean
+  // attribute plus a matching stylesheet rule (see buildSmartCSS) swaps it
+  // for a flat surface instead. Section-header "shimmer" dividers (a light
+  // gradient fading to transparent, drawn via a pseudo-element) hit exactly
+  // this case and were previously left untouched.
+  function adjustPseudoGradient(el, pseudo, attribute) {
+    var style = getComputedStyle(el, pseudo);
+    if (!style || style.content === "none") return;
+    var image = style.backgroundImage;
+    if (!image || image === "none" || image.indexOf("gradient") === -1) return;
+    if (image.indexOf("url(") !== -1) return;
+    if (!isLightDullGradient(image)) return;
+
+    el.setAttribute(attribute, "true");
     if (!el.getAttribute(SCAN_ATTR)) el.setAttribute(SCAN_ATTR, "g");
   }
 
@@ -507,6 +534,8 @@
       adjustPseudoBackground(el, "::after", AFTER_BG_ATTR, "--sensodark-after-bg", style);
       adjustPseudoAsset(el, "::before", BEFORE_FILTER_ATTR);
       adjustPseudoAsset(el, "::after", AFTER_FILTER_ATTR);
+      adjustPseudoGradient(el, "::before", BEFORE_GRAD_ATTR);
+      adjustPseudoGradient(el, "::after", AFTER_GRAD_ATTR);
       el.setAttribute(SCAN_ATTR, "i");
       return;
     }
@@ -536,6 +565,8 @@
     adjustPseudoBackground(el, "::after", AFTER_BG_ATTR, "--sensodark-after-bg", style);
     adjustPseudoAsset(el, "::before", BEFORE_FILTER_ATTR);
     adjustPseudoAsset(el, "::after", AFTER_FILTER_ATTR);
+    adjustPseudoGradient(el, "::before", BEFORE_GRAD_ATTR);
+    adjustPseudoGradient(el, "::after", AFTER_GRAD_ATTR);
 
     var shadow = style.boxShadow;
     if (shadow && shadow !== "none") {
